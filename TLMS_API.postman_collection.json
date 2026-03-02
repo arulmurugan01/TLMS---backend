@@ -1,0 +1,270 @@
+{
+  "info": {
+    "name": "TLMS API Collection",
+    "description": "Transport Load Management System - Full API Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api" },
+    { "key": "sellerToken", "value": "" },
+    { "key": "transporterToken", "value": "" },
+    { "key": "adminToken", "value": "" },
+    { "key": "loadId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "🔐 Auth",
+      "item": [
+        {
+          "name": "Request OTP (Seller)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mobile\": \"9876543210\",\n  \"role\": \"seller\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/request-otp", "host": ["{{baseUrl}}"], "path": ["auth", "request-otp"] }
+          }
+        },
+        {
+          "name": "Verify OTP (Seller)",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const res = pm.response.json();",
+                "if(res.data && res.data.token) pm.collectionVariables.set('sellerToken', res.data.token);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mobile\": \"9876543210\",\n  \"otp\": \"REPLACE_WITH_CONSOLE_OTP\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/verify-otp", "host": ["{{baseUrl}}"], "path": ["auth", "verify-otp"] }
+          }
+        },
+        {
+          "name": "Request OTP (Transporter)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mobile\": \"9123456780\",\n  \"role\": \"transporter\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/request-otp", "host": ["{{baseUrl}}"], "path": ["auth", "request-otp"] }
+          }
+        },
+        {
+          "name": "Verify OTP (Transporter)",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const res = pm.response.json();",
+                "if(res.data && res.data.token) pm.collectionVariables.set('transporterToken', res.data.token);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mobile\": \"9123456780\",\n  \"otp\": \"REPLACE_WITH_CONSOLE_OTP\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/verify-otp", "host": ["{{baseUrl}}"], "path": ["auth", "verify-otp"] }
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/auth/profile", "host": ["{{baseUrl}}"], "path": ["auth", "profile"] }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{sellerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Rahul Sharma\"\n}" },
+            "url": { "raw": "{{baseUrl}}/auth/profile", "host": ["{{baseUrl}}"], "path": ["auth", "profile"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📦 Loads — Seller",
+      "item": [
+        {
+          "name": "Create Load",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const res = pm.response.json();",
+                "if(res.data && res.data.id) pm.collectionVariables.set('loadId', res.data.id);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{sellerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"origin\": \"Mumbai\",\n  \"destination\": \"Delhi\",\n  \"materialDescription\": \"Electronic goods - laptops and phones\",\n  \"weight\": 500,\n  \"price\": 15000,\n  \"pickupDate\": \"2025-03-01\",\n  \"notes\": \"Handle with care\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/loads", "host": ["{{baseUrl}}"], "path": ["loads"] }
+          }
+        },
+        {
+          "name": "Get My Loads",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/loads/my?page=1&limit=10", "host": ["{{baseUrl}}"], "path": ["loads", "my"] }
+          }
+        },
+        {
+          "name": "Mark Load Complete",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/loads/{{loadId}}/complete", "host": ["{{baseUrl}}"], "path": ["loads", "{{loadId}}", "complete"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🚚 Loads — Transporter",
+      "item": [
+        {
+          "name": "Get Available Loads",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{transporterToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/loads/available?page=1&limit=10",
+              "host": ["{{baseUrl}}"], "path": ["loads", "available"],
+              "query": [
+                { "key": "origin", "value": "Mumbai", "disabled": true },
+                { "key": "destination", "value": "Delhi", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Accept Load",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{transporterToken}}" }],
+            "url": { "raw": "{{baseUrl}}/loads/{{loadId}}/accept", "host": ["{{baseUrl}}"], "path": ["loads", "{{loadId}}", "accept"] }
+          }
+        },
+        {
+          "name": "Get Assigned Loads",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{transporterToken}}" }],
+            "url": { "raw": "{{baseUrl}}/loads/assigned", "host": ["{{baseUrl}}"], "path": ["loads", "assigned"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔔 Notifications",
+      "item": [
+        {
+          "name": "Get My Notifications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/notifications", "host": ["{{baseUrl}}"], "path": ["notifications"] }
+          }
+        },
+        {
+          "name": "Mark All Read",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/notifications/read-all", "host": ["{{baseUrl}}"], "path": ["notifications", "read-all"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👑 Admin",
+      "item": [
+        {
+          "name": "Get System Stats",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/admin/stats", "host": ["{{baseUrl}}"], "path": ["admin", "stats"] }
+          }
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/admin/users", "host": ["{{baseUrl}}"], "path": ["admin", "users"] }
+          }
+        },
+        {
+          "name": "Get All Loads",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/loads?page=1&limit=10", "host": ["{{baseUrl}}"], "path": ["loads"] }
+          }
+        },
+        {
+          "name": "Update User Role",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"role\": \"transporter\"\n}" },
+            "url": { "raw": "{{baseUrl}}/admin/users/USER_ID_HERE/role", "host": ["{{baseUrl}}"], "path": ["admin", "users", "USER_ID_HERE", "role"] }
+          }
+        },
+        {
+          "name": "Toggle User Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/admin/users/USER_ID_HERE/toggle-status", "host": ["{{baseUrl}}"], "path": ["admin", "users", "USER_ID_HERE", "toggle-status"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "❤️ Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:3000/health", "host": ["http://localhost:3000"], "path": ["health"] }
+          }
+        }
+      ]
+    }
+  ]
+}
